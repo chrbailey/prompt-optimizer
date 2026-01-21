@@ -167,9 +167,13 @@ export interface OptimizationContext {
 /**
  * Names of available prompt optimization techniques.
  * Each technique implements a specific strategy for improving prompts.
+ *
+ * Note: 'structured_reasoning' is the preferred name for explicit step-by-step
+ * reasoning guidance. 'chain_of_thought' is maintained for backward compatibility.
  */
 export type TechniqueName =
-  | 'chain_of_thought'
+  | 'structured_reasoning'  // Preferred: adds explicit reasoning steps
+  | 'chain_of_thought'      // Alias for structured_reasoning (backward compat)
   | 'few_shot'
   | 'role_prompting'
   | 'structured_output'

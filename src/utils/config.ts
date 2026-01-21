@@ -29,7 +29,9 @@ export type ModelId =
 export type OutputFormat = 'text' | 'json' | 'markdown' | 'code' | 'structured';
 
 export type OptimizationTechnique =
-  | 'chain_of_thought'
+  | 'structured_reasoning'  // Preferred: explicit step-by-step reasoning
+  | 'structured-reasoning'
+  | 'chain_of_thought'      // Alias (backward compat)
   | 'chain-of-thought'
   | 'few_shot'
   | 'few-shot'
@@ -117,7 +119,7 @@ const DEFAULT_CONFIG: Config = {
     model: 'claude-sonnet-4-20250514',
     outputFormat: 'text',
     maxCost: 1.0,
-    techniques: ['chain-of-thought', 'structured-output'],
+    techniques: ['structured-reasoning', 'structured-output'],
   },
   logging: {
     level: 'info',

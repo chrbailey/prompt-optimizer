@@ -1,15 +1,25 @@
 # Prompt Optimizer
 
+[![CI](https://github.com/chrbailey/prompt-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/prompt-optimizer/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 AI-powered prompt optimization with multi-agent architecture. Improve your prompts for better results with LLMs.
 
 ## Features
 
 - **Multi-Provider Support**: Works with Anthropic (Claude), OpenAI (GPT-4), and Google (Gemini)
 - **Intelligent Routing**: Automatically selects the best model based on task requirements and budget
-- **Multiple Optimization Techniques**: Chain-of-thought, few-shot learning, role prompting, and more
+- **Multiple Optimization Techniques**: Structured reasoning, few-shot learning, role prompting, and more
 - **Quality Evaluation**: Score your prompts and get actionable suggestions
 - **Batch Processing**: Optimize multiple prompts in parallel
 - **Flexible Output**: Text, JSON, or Markdown output formats
+
+## Documentation
+
+- [Security](docs/security.md) - API key handling, data sent to providers, logging
+- [Scoring](docs/scoring.md) - How prompts are evaluated (deterministic, transparent rubric)
+- [Routing](docs/routing.md) - How models are selected (decision policy, constraints)
 
 ## Installation
 
@@ -229,7 +239,7 @@ prompt-optimizer config providers list
 
 | Technique | Description |
 |-----------|-------------|
-| `chain_of_thought` | Adds step-by-step reasoning guidance |
+| `structured_reasoning` | Adds explicit step-by-step reasoning guidance (recommended) |
 | `few_shot` | Includes examples to guide the model |
 | `role_prompting` | Assigns an expert role to the model |
 | `structured_output` | Requests clear, organized responses |
@@ -237,6 +247,8 @@ prompt-optimizer config providers list
 | `decomposition` | Splits problems into components |
 | `tree_of_thought` | Explores multiple reasoning paths |
 | `meta_prompting` | Self-reflective prompt improvement |
+
+> **Note**: `chain_of_thought` is accepted as an alias for `structured_reasoning` for backward compatibility.
 
 ## Evaluation Metrics
 

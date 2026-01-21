@@ -232,7 +232,8 @@ function buildOptimizationPrompt(
   examples: SAPExample[]
 ): string {
   const techniqueDescriptions: Record<string, string> = {
-    chain_of_thought: 'Add explicit reasoning steps that guide the AI through the problem systematically',
+    structured_reasoning: 'Add explicit reasoning steps that guide the AI through the problem systematically',
+    chain_of_thought: 'Add explicit reasoning steps that guide the AI through the problem systematically', // Alias
     few_shot: 'Structure the prompt with clear input/output patterns based on similar examples',
     role_prompting: 'Establish a specific expert role or persona for the AI to adopt',
     structured_output: 'Request a specific output format (tables, numbered lists, sections)',
