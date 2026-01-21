@@ -19,7 +19,8 @@ import { sapExamples, type SAPExample } from '../../knowledge/examples/sap-enter
 
 // Valid technique names
 const VALID_TECHNIQUES: TechniqueName[] = [
-  'chain_of_thought',
+  'structured_reasoning',  // Preferred name
+  'chain_of_thought',      // Alias for backward compat
   'few_shot',
   'role_prompting',
   'structured_output',
@@ -44,6 +45,7 @@ interface OptimizeOptions {
   costLimit?: number;
   showMetrics: boolean;
   dryRun: boolean;
+  explain: boolean;
 }
 
 export const optimizeCommand = new Command('optimize')
@@ -60,6 +62,7 @@ export const optimizeCommand = new Command('optimize')
   .option('--cost-limit <dollars>', 'Maximum cost budget in dollars')
   .option('--metrics', 'Show detailed metrics', false)
   .option('--dry-run', 'Show what would be done without executing', false)
+  .option('--explain', 'Show full optimization plan: techniques, model, cost estimate, examples used', false)
   .action(async (prompt: string, options: OptimizeOptions) => {
     try {
       await runOptimize(prompt, options);
@@ -102,6 +105,15 @@ async function runOptimize(prompt: string, options: OptimizeOptions): Promise<vo
     console.log(formatPromptScores(originalScores));
 
     return;
+  }
+
+  // Explain mode - show full optimization plan with transparency
+  if (options.explain) {
+    outputExplain(prompt, techniques, model, originalScores, tokenCount);
+    output.newline();
+    console.log(chalk.dim('─'.repeat(50)));
+    console.log(chalk.yellow('Proceeding with optimization...'));
+    output.newline();
   }
 
   // Show progress
@@ -392,6 +404,97 @@ function applyBasicOptimization(original: string, techniques: TechniqueName[]): 
   }
 
   return optimized;
+}
+
+/**
+ * Output explain mode - full transparency on optimization plan
+ */
+function outputExplain(
+  prompt: string,
+  techniques: TechniqueName[],
+  model: string,
+  scores: ReturnType<typeof calculatePromptScores>,
+  tokenCount: number
+): void {
+  output.heading('Optimization Plan (--explain)');
+
+  // 1. Techniques with descriptions
+  output.subheading('1. Techniques Selected');
+  const techniqueDescriptions: Record<string, string> = {
+    structured_reasoning: 'Adds explicit step-by-step reasoning guidance',
+    chain_of_thought: 'Adds explicit step-by-step reasoning guidance (alias)',
+    few_shot: 'Includes relevant examples for pattern guidance',
+    role_prompting: 'Establishes expert persona for the AI',
+    structured_output: 'Requests specific output format (tables, lists, sections)',
+    step_by_step: 'Breaks task into numbered sequential steps',
+    decomposition: 'Splits problem into smaller sub-problems',
+    reflection: 'Adds self-verification instructions',
+  };
+
+  for (const technique of techniques) {
+    const desc = techniqueDescriptions[technique] || 'Custom technique';
+    console.log(chalk.cyan(`  • ${technique}`) + chalk.dim(` - ${desc}`));
+  }
+
+  // 2. Model and cost estimate
+  output.newline();
+  output.subheading('2. Model Selection');
+  console.log(chalk.cyan(`  Model: `) + model);
+
+  // Estimate cost (simplified)
+  const MODEL_COSTS: Record<string, { input: number; output: number }> = {
+    'claude-opus-4-5-20251101': { input: 0.015, output: 0.075 },
+    'claude-sonnet-4-20250514': { input: 0.003, output: 0.015 },
+    'gpt-4o': { input: 0.005, output: 0.015 },
+    'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+    'gemini-2.0-flash': { input: 0.00035, output: 0.0015 },
+  };
+
+  const pricing = MODEL_COSTS[model] || { input: 0.003, output: 0.015 };
+  const estimatedInputTokens = tokenCount + 500; // prompt + meta-prompt
+  const estimatedOutputTokens = Math.min(tokenCount * 3, 2000); // ~3x expansion
+  const estimatedCost = (estimatedInputTokens / 1000) * pricing.input +
+                        (estimatedOutputTokens / 1000) * pricing.output;
+
+  console.log(chalk.cyan(`  Est. Input Tokens: `) + `~${estimatedInputTokens}`);
+  console.log(chalk.cyan(`  Est. Output Tokens: `) + `~${estimatedOutputTokens}`);
+  console.log(chalk.cyan(`  Est. Cost: `) + `$${estimatedCost.toFixed(4)}`);
+
+  // 3. Few-shot examples (if applicable)
+  output.newline();
+  output.subheading('3. Few-Shot Examples');
+
+  if (techniques.includes('few_shot')) {
+    const relevantExamples = findRelevantExamples(prompt, 3);
+    if (relevantExamples.length > 0) {
+      for (const ex of relevantExamples) {
+        console.log(chalk.cyan(`  • ${ex.id}`) + chalk.dim(` - ${ex.title}`));
+        console.log(chalk.dim(`    Category: ${ex.category} | Tags: ${ex.tags.slice(0, 3).join(', ')}`));
+      }
+    } else {
+      console.log(chalk.dim('  No closely matching examples found'));
+    }
+  } else {
+    console.log(chalk.dim('  few_shot technique not selected - no examples will be used'));
+  }
+
+  // 4. Current prompt analysis
+  output.newline();
+  output.subheading('4. Current Prompt Analysis');
+  console.log(chalk.cyan(`  Token Count: `) + tokenCount.toString());
+  console.log(chalk.cyan(`  Clarity: `) + `${scores.clarity}/100`);
+  console.log(chalk.cyan(`  Specificity: `) + `${scores.specificity}/100`);
+  console.log(chalk.cyan(`  Structure: `) + `${scores.structure}/100`);
+  console.log(chalk.cyan(`  Completeness: `) + `${scores.completeness}/100`);
+  console.log(chalk.cyan(`  Efficiency: `) + `${scores.efficiency}/100`);
+  console.log(chalk.cyan(`  Overall: `) + chalk.bold(`${scores.overall}/100`));
+
+  // 5. Scoring weights (transparency)
+  output.newline();
+  output.subheading('5. Scoring Weights');
+  console.log(chalk.dim('  Clarity: 25% | Specificity: 25% | Structure: 15%'));
+  console.log(chalk.dim('  Completeness: 20% | Efficiency: 15%'));
+  console.log(chalk.dim('  See docs/scoring.md for full rubric'));
 }
 
 function outputText(

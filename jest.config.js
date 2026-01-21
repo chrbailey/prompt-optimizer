@@ -12,6 +12,9 @@ export default {
     '^@providers/(.*)$': '<rootDir>/src/providers/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@types/(.*)$': '<rootDir>/src/types/$1',
+    // Mock ESM-only modules for testing
+    '^chalk$': '<rootDir>/tests/__mocks__/chalk.js',
+    '^ora$': '<rootDir>/tests/__mocks__/ora.js',
   },
   transform: {
     '^.+\\.tsx?$': [
@@ -25,6 +28,9 @@ export default {
       },
     ],
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(chalk|#ansi-styles|#supports-color)/)',
+  ],
   extensionsToTreatAsEsm: ['.ts'],
   collectCoverageFrom: [
     'src/**/*.ts',
