@@ -367,7 +367,8 @@ export interface ModelConfig {
   id: string;
   /** Human-readable model name */
   name: string;
-  /** Provider that hosts this model */
+  /** Provider that hosts this model (allows custom provider names) */
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   provider: ProviderName | string;
   /** Maximum context window size in tokens */
   contextWindow: number;
@@ -474,7 +475,8 @@ export interface CompletionResponse {
   cost: CompletionCost;
   /** Time taken for the request in milliseconds */
   latencyMs: number;
-  /** Provider that handled the request */
+  /** Provider that handled the request (allows custom provider names) */
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   provider: ProviderName | string;
   /** Whether this is a streaming response chunk */
   streaming?: boolean;

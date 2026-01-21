@@ -13,8 +13,6 @@ import type {
   CompletionRequest,
   CompletionResponse,
   CostEstimate,
-  TaskType,
-  Budget,
 } from '../types/index.js';
 
 /**

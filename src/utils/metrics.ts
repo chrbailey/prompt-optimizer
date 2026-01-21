@@ -286,7 +286,6 @@ export function calculateOptimizationMetrics(
   const estimatedCostOriginal = calculateCost(tokenCountOriginal, estimatedOutputTokens, model);
   const estimatedCostOptimized = calculateCost(tokenCountOptimized, estimatedOutputTokens, model);
 
-  const originalScores = calculatePromptScores(original);
   const optimizedScores = calculatePromptScores(optimized);
 
   return {

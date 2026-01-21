@@ -180,7 +180,7 @@ class ConfigManager {
 
     try {
       const content = await readFile(CONFIG_FILE, 'utf-8');
-      const fileConfig = JSON.parse(content);
+      const fileConfig = JSON.parse(content) as Partial<Config>;
       this.mergeConfig(fileConfig);
       logger.debug('Loaded config from file');
     } catch (error) {
@@ -198,7 +198,7 @@ class ConfigManager {
 
     try {
       const content = await readFile(KEYS_FILE, 'utf-8');
-      const keys = JSON.parse(content);
+      const keys = JSON.parse(content) as Record<string, string>;
 
       if (keys.anthropic) {
         this.config.providers.anthropic = { apiKey: keys.anthropic };
@@ -383,7 +383,7 @@ class ConfigManager {
       let existingKeys: Record<string, string> = {};
       if (existsSync(KEYS_FILE)) {
         const content = await readFile(KEYS_FILE, 'utf-8');
-        existingKeys = JSON.parse(content);
+        existingKeys = JSON.parse(content) as Record<string, string>;
       }
 
       // Merge and save

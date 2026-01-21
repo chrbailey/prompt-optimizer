@@ -61,7 +61,7 @@ export class Logger {
     this.timestamps = options.timestamps ?? true;
 
     if (options.file) {
-      this.initFileStream(options.file);
+      void this.initFileStream(options.file);
     }
   }
 
@@ -77,7 +77,7 @@ export class Logger {
       }
       this.buffer = [];
     } catch (error) {
-      console.error(`Failed to initialize log file: ${error}`);
+      console.error(`Failed to initialize log file: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

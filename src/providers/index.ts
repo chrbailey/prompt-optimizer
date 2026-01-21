@@ -48,6 +48,12 @@
  * ```
  */
 
+// Local imports for use in helper functions
+import { AnthropicProvider } from './anthropic/index.js';
+import { OpenAIProvider } from './openai/index.js';
+import { GoogleProvider } from './google/index.js';
+import { ProviderRegistry } from './registry.js';
+
 // Base provider exports
 export {
   BaseLLMProvider,
@@ -131,16 +137,14 @@ export {
  * ```
  */
 export function setupProvidersFromEnv(): ProviderRegistry {
-  // Import providers
-  const { AnthropicProvider } = require('./anthropic/index.js');
-  const { OpenAIProvider } = require('./openai/index.js');
-  const { GoogleProvider } = require('./google/index.js');
-
   const registry = new ProviderRegistry();
 
-  // Register factories
+  // Register factories using already-imported providers
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   registry.registerFactory('anthropic', (config) => new AnthropicProvider(config));
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   registry.registerFactory('openai', (config) => new OpenAIProvider(config));
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   registry.registerFactory('google', (config) => new GoogleProvider(config));
 
   // Configure from environment variables
@@ -164,6 +168,3 @@ export function setupProvidersFromEnv(): ProviderRegistry {
 
   return registry;
 }
-
-// Import the ProviderRegistry class for the helper function
-import { ProviderRegistry } from './registry.js';

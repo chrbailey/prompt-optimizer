@@ -9,7 +9,6 @@
  */
 
 import type { LLMProvider, ProviderConfig, ProviderHealth } from './base-provider.js';
-import { ProviderError } from './base-provider.js';
 import type { ModelConfig, TaskType, Budget } from '../types/index.js';
 
 /**
@@ -514,7 +513,7 @@ export const defaultRegistry = new ProviderRegistry();
  * @returns Configured registry
  */
 export function createRegistry(
-  configs: Record<string, ProviderConfig>
+  _configs: Record<string, ProviderConfig>
 ): ProviderRegistry {
   const registry = new ProviderRegistry();
 
