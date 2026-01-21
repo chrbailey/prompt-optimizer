@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Coverage
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test output
+test-results/
+junit.xml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Config with secrets
+.prompt-optimizer/keys.json
+
+# Internal development notes (not for public)
+Build_Notes.md
+CLAUDE.md
+.claude/
