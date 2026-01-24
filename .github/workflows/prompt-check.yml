@@ -1,0 +1,26 @@
+# Example: Add this workflow to score prompts on every PR
+# Copy to .github/workflows/prompt-check.yml
+
+name: Prompt Quality Check
+
+on:
+  pull_request:
+    paths:
+      - '**/*.prompt.md'
+      - 'prompts/**'
+
+jobs:
+  score-prompts:
+    name: Score Prompt Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Score Prompts
+        uses: chrbailey/prompt-optimizer/action@main
+        with:
+          path: '**/*.prompt.md'
+          threshold: '60'
+          annotations: 'true'

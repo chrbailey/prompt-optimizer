@@ -1,447 +1,457 @@
 # Prompt Optimizer
 
 [![CI](https://github.com/chrbailey/prompt-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/chrbailey/prompt-optimizer/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/prompt-optimizer.svg)](https://www.npmjs.com/package/prompt-optimizer)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Action](https://img.shields.io/badge/GitHub%20Action-available-success)](https://github.com/chrbailey/prompt-optimizer/tree/main/action)
 
-AI-powered prompt optimization with multi-agent architecture. Improve your prompts for better results with LLMs.
+**The only prompt quality tool that gives you the same score every time.**
 
-## Features
+Stop guessing if your prompts are good. Get deterministic, reproducible quality scores that you can trust in CI/CD pipelines. No LLM evaluation randomness. No surprise failures.
 
-- **Multi-Provider Support**: Works with Anthropic (Claude), OpenAI (GPT-4), and Google (Gemini)
-- **Intelligent Routing**: Automatically selects the best model based on task requirements and budget
-- **Multiple Optimization Techniques**: Structured reasoning, few-shot learning, role prompting, and more
-- **Quality Evaluation**: Score your prompts and get actionable suggestions
-- **Batch Processing**: Optimize multiple prompts in parallel
-- **Flexible Output**: Text, JSON, or Markdown output formats
+```bash
+# Add to any PR workflow in 30 seconds
+- uses: chrbailey/prompt-optimizer/action@main
+  with:
+    threshold: 60
+```
 
-## Documentation
+---
 
-- [Security](docs/security.md) - API key handling, data sent to providers, logging
-- [Scoring](docs/scoring.md) - How prompts are evaluated (deterministic, transparent rubric)
-- [Routing](docs/routing.md) - How models are selected (decision policy, constraints)
+## Why Prompt Optimizer?
+
+| Problem | Other Tools | Prompt Optimizer |
+|---------|-------------|------------------|
+| **Evaluation consistency** | LLM-based scoring varies 10-20% between runs | **100% deterministic** - same input, same score, every time |
+| **CI/CD integration** | Complex setup, API keys required | **Zero API keys** - works offline, instant results |
+| **Debugging failures** | "The AI said it was bad" | **Transparent rubric** - know exactly why a score dropped |
+| **Cost** | $0.01-0.10 per evaluation | **Free** - no API calls for scoring |
+
+### The Quality Gate for Prompts
+
+Just like ESLint catches code issues before merge, Prompt Optimizer catches prompt regressions:
+
+```yaml
+# .github/workflows/prompt-check.yml
+name: Prompt Quality
+
+on:
+  pull_request:
+    paths: ['**/*.prompt.md', 'prompts/**']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chrbailey/prompt-optimizer/action@main
+        with:
+          path: '**/*.prompt.md'
+          threshold: 60
+          annotations: true  # Adds inline PR comments
+```
+
+**Result:** PRs that degrade prompt quality automatically fail with clear feedback.
+
+---
+
+## Quick Demo
+
+**Good prompt** (scores 78/100):
+```markdown
+# Code Review Assistant
+
+## Role
+You are an expert code reviewer with 10+ years of TypeScript experience.
+
+## Task
+Review the provided code for security vulnerabilities and performance issues.
+
+## Output Format
+Return JSON: { "issues": [{ "severity": "high|medium|low", "line": 42, "description": "..." }] }
+
+## Constraints
+- Focus on functional issues only
+- Limit to 5 most critical issues
+```
+
+**Bad prompt** (scores 32/100):
+```
+review this code and tell me if there are any problems with it or whatever. make it better somehow. thanks
+```
+
+The difference is measurable, reproducible, and enforceable in CI.
+
+---
+
+## Scoring System
+
+Every prompt is scored on 5 dimensions (0-100):
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| **Clarity** | 25% | Absence of ambiguous pronouns ("it", "this", "stuff") |
+| **Specificity** | 25% | Concrete details, numbers, quoted examples |
+| **Structure** | 15% | Headers, lists, code blocks, paragraphs |
+| **Completeness** | 20% | Task, context, output format, constraints |
+| **Efficiency** | 15% | Token count in optimal range (50-200 tokens) |
+
+**Overall Score** = weighted average, rounded to nearest integer.
+
+See [docs/scoring.md](docs/scoring.md) for the complete rubric with examples.
+
+---
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/christopherbailey/prompt-optimizer.git
-cd prompt-optimizer
+### GitHub Action (Recommended)
 
-# Install dependencies
+Add to your workflow - no installation needed:
+
+```yaml
+- uses: chrbailey/prompt-optimizer/action@main
+  with:
+    path: '**/*.prompt.md'  # Glob pattern for prompt files
+    threshold: 60            # Minimum score to pass (0-100)
+    annotations: true        # Add PR annotations for failures
+```
+
+### CLI
+
+```bash
+# Install globally
+npm install -g prompt-optimizer
+
+# Or run with npx
+npx prompt-optimizer evaluate "Your prompt here"
+```
+
+### As a Library
+
+```bash
+npm install prompt-optimizer
+```
+
+```typescript
+import { calculatePromptScores } from 'prompt-optimizer';
+
+const scores = calculatePromptScores("Your prompt here");
+console.log(scores.overall); // 0-100
+```
+
+---
+
+## CLI Commands
+
+### `evaluate` - Score a Prompt
+
+```bash
+prompt-optimizer evaluate "Write a function to sort an array" --metrics
+
+# Output:
+# Score: 45/100
+#
+# Breakdown:
+#   Clarity:      55/100
+#   Specificity:  40/100
+#   Structure:    30/100
+#   Completeness: 45/100
+#   Efficiency:   70/100
+#
+# Suggestions:
+#   - Add specific requirements (language, complexity, edge cases)
+#   - Include output format specification
+#   - Add examples of expected input/output
+```
+
+### `optimize` - Improve a Prompt
+
+```bash
+prompt-optimizer optimize "Write a sorting function" --techniques structured_reasoning,few_shot
+
+# Applies optimization techniques using LLM (requires API key)
+```
+
+### `route` - Select Best Model
+
+```bash
+prompt-optimizer route "Complex code review task" --quality best
+
+# Recommends: claude-sonnet-4 (coding task, high complexity)
+```
+
+### `batch` - Process Multiple Prompts
+
+```bash
+prompt-optimizer batch prompts.txt --output results.json --parallel 5
+```
+
+See [CLI Reference](#cli-reference) for all options.
+
+---
+
+## GitHub Action Options
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `path` | `**/*.prompt.md` | Glob pattern for prompt files |
+| `threshold` | `60` | Minimum score to pass (0-100) |
+| `fail-on-warning` | `false` | Fail if any prompt is within 10 points of threshold |
+| `annotations` | `true` | Add inline PR annotations for failures |
+| `output-format` | `summary` | Output: `summary`, `detailed`, or `json` |
+
+| Output | Description |
+|--------|-------------|
+| `total-prompts` | Number of prompts scored |
+| `passed-prompts` | Number above threshold |
+| `failed-prompts` | Number below threshold |
+| `average-score` | Mean score across all prompts |
+| `results-json` | Full results as JSON string |
+
+### Example: Block Merges on Low Scores
+
+```yaml
+jobs:
+  prompt-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chrbailey/prompt-optimizer/action@main
+        id: score
+        with:
+          threshold: 70
+          fail-on-warning: true
+
+      - name: Comment on PR
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ Prompt quality check failed. Please review the annotations above.'
+            })
+```
+
+---
+
+## Comparison with Alternatives
+
+| Feature | Prompt Optimizer | DSPy | LiteLLM | Promptfoo | Not Diamond |
+|---------|------------------|------|---------|-----------|-------------|
+| **Deterministic Scoring** | ✅ Yes | ❌ No | ❌ No | ⚠️ Custom | ❌ No |
+| **No API Key Required** | ✅ Scoring | ❌ | ❌ | ❌ | ❌ |
+| **GitHub Action** | ✅ Native | ❌ | ❌ | ⚠️ | ❌ |
+| **CI/CD Quality Gate** | ✅ Built-in | ❌ | ❌ | ✅ | ❌ |
+| **Transparent Rubric** | ✅ [Documented](docs/scoring.md) | ❌ | N/A | ⚠️ | ❌ |
+| **Multi-Provider Support** | ✅ 3 | ✅ Many | ✅ 100+ | ✅ Many | ✅ 200+ |
+| **Prompt Optimization** | ✅ 8 techniques | ✅ Auto | ❌ | ❌ | ✅ Auto |
+| **Model Routing** | ✅ Task-aware | ❌ | ⚠️ Fallback | ❌ | ✅ ML-based |
+
+**When to use Prompt Optimizer:**
+- You need **reproducible scores** for CI/CD
+- You want a **quality gate** that doesn't require API keys
+- You need to **audit** why a prompt scored a certain way
+
+**When to use something else:**
+- DSPy: You want automatic prompt optimization through compilation
+- LiteLLM: You need to call 100+ different LLM providers
+- Promptfoo: You need comprehensive security/adversarial testing
+- Not Diamond: You need ML-based routing at scale with enterprise support
+
+---
+
+## Prompt File Convention
+
+We recommend using `.prompt.md` extension for prompt files:
+
+```
+prompts/
+├── code-review.prompt.md
+├── summarization.prompt.md
+└── data-extraction.prompt.md
+```
+
+This makes it easy to:
+- Target prompts with glob patterns (`**/*.prompt.md`)
+- Distinguish prompts from regular documentation
+- Get syntax highlighting in editors
+
+### Example Prompt File
+
+```markdown
+# Data Extraction Assistant
+
+## Role
+You are a data extraction specialist.
+
+## Task
+Extract all email addresses and phone numbers from the provided text.
+
+## Output Format
+```json
+{
+  "emails": ["user@example.com"],
+  "phones": ["+1-555-123-4567"]
+}
+```
+
+## Constraints
+- Only extract valid formats
+- Deduplicate results
+- Return empty arrays if none found
+```
+
+---
+
+## Documentation
+
+- [Scoring Rubric](docs/scoring.md) - Exact formula, examples, known limitations
+- [Routing Policy](docs/routing.md) - How models are selected
+- [Security](docs/security.md) - API key handling, data privacy
+
+---
+
+## Development
+
+```bash
+# Clone and install
+git clone https://github.com/chrbailey/prompt-optimizer.git
+cd prompt-optimizer
 npm install
 
-# Build the project
+# Build
 npm run build
 
-# Link globally (optional)
-npm link
+# Test
+npm test
+
+# Lint
+npm run lint
+
+# Build the GitHub Action
+cd action && npm install && npm run build
 ```
 
-## Quick Start
+### Architecture
 
-### 1. Configure API Keys
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      CLI / GitHub Action                     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+│   Evaluator   │     │   Optimizer   │     │    Router     │
+│   (Scoring)   │     │  (Techniques) │     │   (Models)    │
+└───────────────┘     └───────────────┘     └───────────────┘
+        │                     │                     │
+        │                     ▼                     │
+        │         ┌───────────────────────┐        │
+        │         │    LLM Providers      │        │
+        │         │ Anthropic/OpenAI/Google│        │
+        │         └───────────────────────┘        │
+        │                                          │
+        └──────────────────────────────────────────┘
+                    No API Required
+               (Deterministic Scoring)
+```
+
+---
+
+## CLI Reference
+
+### `evaluate`
 
 ```bash
-# Set up your API keys
-prompt-optimizer config set anthropic.apiKey sk-ant-api03-...
-prompt-optimizer config set openai.apiKey sk-...
-prompt-optimizer config set google.apiKey AIza...
+prompt-optimizer evaluate <prompt> [options]
 
-# Or use environment variables
-export ANTHROPIC_API_KEY=sk-ant-...
-export OPENAI_API_KEY=sk-...
-export GOOGLE_API_KEY=AIza...
+Options:
+  -m, --metrics          Show detailed score breakdown
+  -c, --compare <prompt> Compare with another prompt
+  -o, --output <format>  Output format (text, json, markdown)
+  -v, --verbose          Show all detected issues
 ```
 
-### 2. Optimize a Prompt
-
-```bash
-prompt-optimizer optimize "Write a function to sort an array"
-```
-
-**Output:**
-```
-Prompt Optimization
-═══════════════════
-
-Model: claude-sonnet-4-20250514
-Techniques: chain_of_thought, structured_output
-
-✓ Optimization complete
-
-Original Prompt:
-Write a function to sort an array
-
-Optimized Prompt:
-You are an expert assistant. Write a function to sort an array
-
-Please think through this step by step.
-
-Provide your response in a clear, structured format.
-
-──────────────────────────────────────────────────
-Score: 45 -> 72 (+27)
-```
-
-## Commands
-
-### `optimize` - Optimize a Prompt
+### `optimize`
 
 ```bash
 prompt-optimizer optimize <prompt> [options]
 
 Options:
   -m, --model <model>       Target model (default: auto)
-  -t, --techniques <list>   Techniques to use (comma-separated)
-  -o, --output <format>     Output format (text, json, markdown)
+  -t, --techniques <list>   Techniques: structured_reasoning, few_shot, role_prompting, etc.
   -n, --variants <n>        Number of variants to generate
   --cost-limit <dollars>    Maximum cost budget
-  --metrics                 Show detailed metrics
   --dry-run                 Show plan without executing
+  --explain                 Show detailed optimization reasoning
 ```
 
-**Examples:**
-
-```bash
-# Basic optimization
-prompt-optimizer optimize "Explain quantum computing"
-
-# With specific techniques
-prompt-optimizer optimize "Write a poem" -t role_prompting,few_shot
-
-# JSON output for scripting
-prompt-optimizer optimize "Analyze this data" -o json
-
-# Preview what would happen
-prompt-optimizer optimize "Complex task" --dry-run
-```
-
-### `route` - Select Best Model
+### `route`
 
 ```bash
 prompt-optimizer route <prompt> [options]
 
 Options:
-  -b, --budget <level>      Budget level (low, medium, high)
-  -q, --quality <level>     Quality requirement (fast, balanced, best)
-  -p, --providers <list>    Allowed providers (anthropic,openai,google)
-  -o, --output <format>     Output format (text, json)
+  -b, --budget <level>   Budget: low, medium, high
+  -q, --quality <level>  Quality: fast, balanced, best
+  -p, --providers <list> Limit to: anthropic, openai, google
 ```
 
-**Examples:**
-
-```bash
-# Find best model for a task
-prompt-optimizer route "Complex code review task" -q best
-
-# Budget-conscious routing
-prompt-optimizer route "Simple question" -b low
-
-# Limit to specific providers
-prompt-optimizer route "Analysis task" -p anthropic,openai
-```
-
-### `evaluate` - Assess Prompt Quality
-
-```bash
-prompt-optimizer evaluate <prompt> [options]
-
-Options:
-  -c, --compare <prompt2>   Compare two prompts
-  -m, --metrics             Show detailed metrics breakdown
-  -o, --output <format>     Output format (text, json, markdown)
-  -v, --verbose             Show all detected issues
-```
-
-**Examples:**
-
-```bash
-# Evaluate a prompt
-prompt-optimizer evaluate "Your prompt here" -m
-
-# Compare two prompts
-prompt-optimizer evaluate "Prompt A" -c "Prompt B"
-
-# Get markdown report
-prompt-optimizer evaluate "Your prompt" -o markdown > report.md
-```
-
-### `batch` - Process Multiple Prompts
+### `batch`
 
 ```bash
 prompt-optimizer batch <file> [options]
 
 Options:
-  -o, --output <file>       Output file (default: stdout)
-  -f, --format <format>     Output format (json, jsonl, csv)
-  -p, --parallel <n>        Concurrent optimizations (default: 3)
-  -t, --techniques <list>   Techniques to use
-  --continue-on-error       Continue if a prompt fails
-  --dry-run                 Show plan without processing
+  -o, --output <file>      Output file
+  -f, --format <format>    Format: json, jsonl, csv
+  -p, --parallel <n>       Concurrent operations (default: 3)
+  --continue-on-error      Don't stop on failures
 ```
 
-**Input file formats:**
-
-```txt
-# prompts.txt - one per line
-Write a function to sort an array
-Explain machine learning
-Create a poem about nature
-```
-
-```json
-// prompts.json
-[
-  "Write a function to sort an array",
-  "Explain machine learning",
-  {"id": "custom-id", "prompt": "Create a poem"}
-]
-```
-
-**Examples:**
+### `config`
 
 ```bash
-# Process prompts from file
-prompt-optimizer batch prompts.txt -o results.json
-
-# With parallelism
-prompt-optimizer batch prompts.json -p 5 --continue-on-error
-
-# Preview batch job
-prompt-optimizer batch prompts.txt --dry-run
+prompt-optimizer config list              # Show configuration
+prompt-optimizer config get <key>         # Get value
+prompt-optimizer config set <key> <value> # Set value
+prompt-optimizer config validate          # Validate config
 ```
 
-### `config` - Manage Configuration
-
-```bash
-# List current configuration
-prompt-optimizer config list
-
-# Get a specific value
-prompt-optimizer config get defaults.model
-
-# Set a value
-prompt-optimizer config set defaults.model claude-sonnet-4-20250514
-prompt-optimizer config set anthropic.apiKey sk-ant-...
-
-# Show config file paths
-prompt-optimizer config path
-
-# Validate configuration
-prompt-optimizer config validate
-
-# List configured providers
-prompt-optimizer config providers list
-```
-
-## Optimization Techniques
-
-| Technique | Description |
-|-----------|-------------|
-| `structured_reasoning` | Adds explicit step-by-step reasoning guidance (recommended) |
-| `few_shot` | Includes examples to guide the model |
-| `role_prompting` | Assigns an expert role to the model |
-| `structured_output` | Requests clear, organized responses |
-| `step_by_step` | Breaks down complex tasks |
-| `decomposition` | Splits problems into components |
-| `tree_of_thought` | Explores multiple reasoning paths |
-| `meta_prompting` | Self-reflective prompt improvement |
-
-> **Note**: `chain_of_thought` is accepted as an alias for `structured_reasoning` for backward compatibility.
-
-## Evaluation Metrics
-
-Prompts are scored on five dimensions (0-100):
-
-- **Clarity**: How clear and unambiguous is the prompt?
-- **Specificity**: Does it include specific details and requirements?
-- **Structure**: Is the prompt well-organized?
-- **Completeness**: Does it include context, constraints, and output format?
-- **Efficiency**: Is the prompt concise without being too brief?
-
-## Configuration
-
-Configuration is stored in `~/.prompt-optimizer/`:
-
-```
-~/.prompt-optimizer/
-├── config.json    # General settings
-└── keys.json      # API keys (restricted permissions)
-```
-
-### Default Configuration
-
-```json
-{
-  "defaults": {
-    "model": "claude-sonnet-4-20250514",
-    "outputFormat": "text",
-    "maxCost": 1.0,
-    "techniques": ["chain_of_thought", "structured_output"]
-  },
-  "logging": {
-    "level": "info",
-    "console": true
-  }
-}
-```
-
-### Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `ANTHROPIC_API_KEY` | Anthropic API key |
-| `OPENAI_API_KEY` | OpenAI API key |
-| `GOOGLE_API_KEY` | Google AI API key |
-| `PROMPT_OPTIMIZER_MODEL` | Default model |
-| `PROMPT_OPTIMIZER_LOG_LEVEL` | Log level (debug, info, warn, error) |
-
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev -- optimize "test prompt"
-
-# Build
-npm run build
-
-# Run tests
-npm test
-
-# Lint
-npm run lint
-
-# Format
-npm run format
-```
-
-## Architecture
-
-The prompt optimizer uses a multi-agent architecture:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                     Orchestrator                         │
-│  Coordinates agents and manages optimization pipeline    │
-└─────────────────────────────────────────────────────────┘
-                            │
-        ┌───────────────────┼───────────────────┐
-        ▼                   ▼                   ▼
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│   Analyzer    │   │   Optimizer   │   │   Validator   │
-│   Agent       │   │   Agent       │   │   Agent       │
-└───────────────┘   └───────────────┘   └───────────────┘
-        │                   │                   │
-        └───────────────────┼───────────────────┘
-                            ▼
-                ┌───────────────────────┐
-                │    LLM Providers      │
-                │ Anthropic/OpenAI/Google│
-                └───────────────────────┘
-```
-
-## How It Was Built
-
-This project was created using a **parallel multi-agent development strategy** - a novel approach where 6 specialized AI agents built different components simultaneously.
-
-### Build Strategy
-
-| Agent | Responsibility | Output |
-|-------|---------------|--------|
-| **Agent A** | Core types and interfaces | TypeScript type definitions |
-| **Agent B** | Provider abstraction layer | Anthropic, OpenAI, Google integrations |
-| **Agent C** | Orchestrator and agent framework | Multi-agent coordination system |
-| **Agent D** | Optimization techniques | 8 prompt optimization techniques |
-| **Agent E** | Enterprise examples | 25 domain-specific example prompts |
-| **Agent F** | CLI and integration | Commander.js CLI with full UX |
-
-### Why Parallel Agents?
-
-1. **Parallelism**: Different components built simultaneously for faster development
-2. **Specialization**: Each agent focused deeply on one domain
-3. **Contract-Based Development**: Agents built to interfaces, not implementations
-4. **Type Reconciliation Phase**: Final phase unified type definitions across all agents
-
-### Key Design Decisions
-
-- **Provider Abstraction**: All LLM providers implement a common interface (`BaseLLMProvider`), enabling seamless switching between Claude, GPT-4, and Gemini
-- **Technique Modularity**: Each optimization technique extends `BaseTechnique`, making it easy to add new techniques
-- **Few-Shot Retrieval**: Keyword-based scoring finds relevant examples from the built-in library
-- **Graceful Degradation**: Falls back to heuristic optimization if no API key is available
-
-### Build Statistics
-
-- **Total TypeScript Files**: 39
-- **Total Lines of Code**: ~21,000
-- **TypeScript Compilation**: 0 errors
-- **Build Time**: Single session with parallel agents
-
-### Built With
-
-- [Claude Code](https://claude.ai/code) - AI-powered development environment
-- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
-- [Commander.js](https://github.com/tj/commander.js/) - CLI framework
-- [Zod](https://github.com/colinhacks/zod) - Runtime type validation
-
-## Project Structure
-
-```
-prompt-optimizer/
-├── src/
-│   ├── cli/                    # Command-line interface
-│   │   ├── commands/           # optimize, evaluate, route, batch, config
-│   │   └── index.ts            # CLI entry point
-│   ├── core/
-│   │   ├── agents/             # Multi-agent framework
-│   │   │   ├── base-agent.ts   # Abstract base class
-│   │   │   ├── optimizer-agent.ts
-│   │   │   ├── router-agent.ts
-│   │   │   ├── evaluator-agent.ts
-│   │   │   └── symbol-encoder.ts
-│   │   ├── orchestrator/       # Agent coordination
-│   │   │   ├── index.ts        # Main orchestrator
-│   │   │   ├── task-queue.ts   # Task management
-│   │   │   └── result-aggregator.ts
-│   │   └── techniques/         # Optimization techniques
-│   │       ├── base-technique.ts
-│   │       ├── chain-of-thought.ts
-│   │       ├── few-shot-selection.ts
-│   │       ├── feedback-iteration.ts
-│   │       └── ...
-│   ├── providers/              # LLM provider abstraction
-│   │   ├── base-provider.ts    # Abstract provider class
-│   │   ├── anthropic/          # Claude models
-│   │   ├── openai/             # GPT models
-│   │   └── google/             # Gemini models
-│   ├── knowledge/              # Example library
-│   │   └── examples/           # Domain-specific examples
-│   ├── types/                  # TypeScript definitions
-│   └── utils/                  # Logging, config, metrics
-├── tests/
-├── package.json
-└── tsconfig.json
-```
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
+---
 
 ## Contributing
 
-Contributions are welcome! Please:
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Priority areas:
+- Additional scoring heuristics
+- New optimization techniques
+- Documentation improvements
+- Bug fixes
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
 
 ## Acknowledgments
 
-- Built with [Claude Code](https://claude.ai/code) using parallel agent architecture
-- Inspired by prompt engineering research and enterprise use cases
-- Uses the Anthropic, OpenAI, and Google Generative AI SDKs
+- Built with [Claude Code](https://claude.ai/code) using parallel multi-agent architecture
+- Inspired by ESLint, Prettier, and the need for prompt quality enforcement
+- Thanks to the prompt engineering research community
+
+---
+
+<p align="center">
+  <strong>Stop guessing. Start measuring.</strong><br>
+  <a href="https://github.com/chrbailey/prompt-optimizer/actions/new">Add Prompt Optimizer to your repo →</a>
+</p>

@@ -1,0 +1,53 @@
+name: 'Prompt Score'
+description: 'Deterministic prompt quality gate for CI/CD. Score prompts and fail builds when quality drops below threshold.'
+author: 'chrbailey'
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  path:
+    description: 'Path to prompt files or directory (supports glob patterns)'
+    required: false
+    default: '**/*.prompt.md'
+  threshold:
+    description: 'Minimum overall score (0-100) required to pass'
+    required: false
+    default: '60'
+  fail-on-warning:
+    description: 'Fail if any prompt scores between threshold and threshold+10'
+    required: false
+    default: 'false'
+  output-format:
+    description: 'Output format: summary, detailed, or json'
+    required: false
+    default: 'summary'
+  config-file:
+    description: 'Path to custom scoring config file'
+    required: false
+    default: ''
+  annotations:
+    description: 'Add GitHub annotations to PR for failed prompts'
+    required: false
+    default: 'true'
+
+outputs:
+  total-prompts:
+    description: 'Total number of prompts scored'
+  passed-prompts:
+    description: 'Number of prompts that passed the threshold'
+  failed-prompts:
+    description: 'Number of prompts that failed the threshold'
+  average-score:
+    description: 'Average overall score across all prompts'
+  lowest-score:
+    description: 'Lowest overall score found'
+  highest-score:
+    description: 'Highest overall score found'
+  results-json:
+    description: 'JSON string containing all scoring results'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

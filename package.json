@@ -1,7 +1,7 @@
 {
   "name": "prompt-optimizer",
-  "version": "0.1.0",
-  "description": "AI-powered prompt optimization with multi-agent architecture",
+  "version": "1.0.0",
+  "description": "Deterministic prompt quality scoring for CI/CD. The only tool that gives you the same score every time.",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
@@ -21,13 +21,22 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "prompt",
-    "optimization",
-    "ai",
+    "prompt-engineering",
+    "prompt-optimizer",
     "llm",
+    "ai",
+    "quality-gate",
+    "ci-cd",
+    "github-action",
+    "deterministic-scoring",
+    "prompt-scoring",
+    "prompt-evaluation",
     "anthropic",
     "openai",
-    "google",
+    "gemini",
+    "claude",
+    "gpt",
+    "typescript",
     "cli"
   ],
   "author": "Christopher Bailey",
@@ -60,10 +69,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/christopherbailey/prompt-optimizer.git"
+    "url": "https://github.com/chrbailey/prompt-optimizer.git"
   },
   "bugs": {
-    "url": "https://github.com/christopherbailey/prompt-optimizer/issues"
+    "url": "https://github.com/chrbailey/prompt-optimizer/issues"
   },
-  "homepage": "https://github.com/christopherbailey/prompt-optimizer#readme"
+  "homepage": "https://github.com/chrbailey/prompt-optimizer#readme"
 }
